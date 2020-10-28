@@ -39,18 +39,20 @@ public class MainWindow {
 	
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(10, 200, 255, 232);
+		frame.setBounds(10, 200, 265, 232);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
 		JSlider slider = new JSlider();
-		slider.setBounds(5, 150, 125, 25);
-		slider.setMinimum(1);
+		slider.setBounds(5, 130, 208, 45);
+		slider.setMinimum(50);
 		slider.setValue(50);
 		slider.setMaximum(1000);
+		slider.setMajorTickSpacing(10);
+		slider.setPaintTicks(true);
 		slider.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				BST.changeSpeed(slider.getValue());
+				ArrayVisualizer.changeSpeed(slider.getValue());
 			}
 		});
 		frame.getContentPane().add(slider);
@@ -61,34 +63,34 @@ public class MainWindow {
 			public void actionPerformed(ActionEvent e) {
 				//Test.startSort();
 				//Test.refresh();
-				BST.startSort();
+				ArrayVisualizer.startSort();
 			}
 		});
-		btnStartSort.setBounds(10, 10, 115, 35);
+		btnStartSort.setBounds(5, 10, 115, 35);
 		frame.getContentPane().add(btnStartSort);
 		
 		JButton btnRandomize = new JButton("Randomize");
 		btnRandomize.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				BST.initNums();
+				ArrayVisualizer.initNums();
 			}
 		});
-		btnRandomize.setBounds(10, 55, 115, 35);
+		btnRandomize.setBounds(124, 10, 115, 35);
 		frame.getContentPane().add(btnRandomize);
 		
 		txtN = new JTextField();
 		txtN.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				BST.main(null, frame.getBounds().width, frame.getBounds().y, Integer.parseInt(txtN.getText()));
-				BST.changeSpeed(slider.getValue());
+				ArrayVisualizer.main(null, frame.getBounds().width, frame.getBounds().y, Integer.parseInt(txtN.getText()));
+				ArrayVisualizer.changeSpeed(slider.getValue());
 			}
 		});
-		txtN.setBounds(10, 126, 86, 20);
+		txtN.setBounds(41, 56, 86, 20);
 		frame.getContentPane().add(txtN);
 		txtN.setColumns(10);
 		
 		JLabel lblN = new JLabel("n = ");
-		lblN.setBounds(10, 101, 46, 14);
+		lblN.setBounds(5, 56, 46, 14);
 		frame.getContentPane().add(lblN);
 		
 	}

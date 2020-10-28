@@ -1,4 +1,4 @@
-package sort;
+package tools;
 
 public class Map {
 

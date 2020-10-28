@@ -11,12 +11,10 @@ import javax.sound.sampled.SourceDataLine;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
-public class BST extends JPanel {
+public class ArrayVisualizer extends JPanel {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private static JFrame frame = new JFrame();
 	private static SortAndAnimate a = new SortAndAnimate();
@@ -32,7 +30,9 @@ public class BST extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        //loop drawing all the elements of the array in a bar graph manner
     	for(int i = 0; i < nums.length; i++) {
+    		//determines when to draw some of the bars in red
     		if((i==temp || i==temp+1) && a.getState()!=Thread.State.NEW && a.getState()!=Thread.State.TERMINATED && temp!=-1) {
     	        g.setColor(Color.red);
     		}
@@ -42,16 +42,19 @@ public class BST extends JPanel {
     		else {
     	        g.setColor(Color.black);
     		}
+    		//draws the actual bars
     		g.fillRect(10 + i*15, 10, 10, map(nums[i], 0, 1000, pL, pH));
     	}
     }
 
+    //this code could be in the main but it is not 
     private static void createAndShowGui(int x, int y, int n) {
         nums = new int[n];
 		initNums();
 		
-        frame.add(new BST());
+        frame.add(new ArrayVisualizer());
         frame.setLocationByPlatform(true);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
         frame.setBounds(x, y, (nums.length*15 + 30), pH+60);
@@ -67,6 +70,7 @@ public class BST extends JPanel {
 
     }
     
+    //randomizes the array
     public static void initNums() {
     	Random rnd = new Random();
     	for(int i = 0; i < nums.length; i++) {
@@ -75,38 +79,39 @@ public class BST extends JPanel {
     	refresh();
     }
     
+    //converts a number from one numerical range to another
     private static int map(int value, int fromLow, int fromHigh, int toLow, int toHigh) {
 		return (int)((Double.parseDouble(Integer.toString(value)) - Double.parseDouble(Integer.toString(fromLow)))/(Double.parseDouble(Integer.toString(fromHigh)) - Double.parseDouble(Integer.toString(fromLow))) * (Double.parseDouble(Integer.toString(toHigh)) - Double.parseDouble(Integer.toString(toLow))) + Double.parseDouble(Integer.toString(toLow)));
 	}
     
+    //refreshes the canvas or smth
     private static void refresh() {
     	frame.repaint();
     }
     
+    //creates and starts the sorting algorithm in a separate thread
     public static void startSort() {
     	a = new SortAndAnimate();
     	a.start();
     	
     }
     
+    //method to change the speed outside of this class #encapsulationBRUH
     public static void changeSpeed(int speed) {
     	sleepTime = speed;
     }
     
+    //this is the lovely sorting class
     private static class SortAndAnimate implements Runnable {
+    	
 		private Thread t;
 				
 		SortAndAnimate() {
-			System.out.println("Creating sortAndAnimate");
-		}
-		
-		private static void playFrequency(int f) {
-			sound = new PlaySound(f);
-			sound.start();
+			//System.out.println("Creating sortAndAnimate");
 		}
 		
 		public void run() {
-			System.out.println("Running sortAndAnimate");
+			//System.out.println("Running sortAndAnimate");
 			boolean swapped;
     		for (int i = 0; i < nums.length / 2; i++) {
     			swapped = false;
@@ -119,8 +124,12 @@ public class BST extends JPanel {
 							e.printStackTrace();
 						}
     					refresh();
+    					
+    					sound = new PlaySound(map(nums[j], 0, 1000, 200, 4000));
+    					//System.out.print("og val=" + nums[j] + "   mapped val="+map(nums[j], 0, 1000, 200, 4000));
+    					sound.start();
+    					
     					int tmp = nums[j];
-    					playFrequency(nums[j]);
     					nums[j] = nums[j + 1];
     					nums[j + 1] = tmp;
     					temp = j;
@@ -140,10 +149,8 @@ public class BST extends JPanel {
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-    					playFrequency(nums[j]);
-    					refresh();
+    					refresh();			
     					int tmp = nums[j];
-    					sound = new PlaySound(nums[j]);
     					nums[j] = nums[j - 1];
     					nums[j - 1] = tmp;
     					temp = j;
@@ -154,6 +161,11 @@ public class BST extends JPanel {
 							e.printStackTrace();
 						}
     					refresh();
+    					
+    					sound = new PlaySound(map(nums[j+1], 0, 1000, 200, 4000));
+    					//System.out.print("og val=" + nums[j+1] + "   mapped val="+map(nums[j+1], 0, 1000, 200, 4000));
+    					sound.start();
+    					
     				}
     			}
     			if (!swapped) break;
@@ -162,6 +174,7 @@ public class BST extends JPanel {
     		oneMorePass();
 		}
 		
+		//one last pass to visualize that the array is sorted
 		private static void oneMorePass() {
 	    	for(int i = nums.length-1; i >= 0; i--) {
 	    		try {
@@ -171,14 +184,17 @@ public class BST extends JPanel {
 				}
 	    		temp2 = i;
 				refresh();
-				playFrequency(nums[i]);
+				
+				sound = new PlaySound(map(nums[i], 0, 1000, 200, 4000));
+				//System.out.print("og val=" + nums[i] + "   mapped val="+map(nums[i], 0, 1000, 200, 4000));
+				sound.start();
 	    	}
 	    	temp2 = -1;
 	    	refresh();
 	    }
 		
 		public void start () {
-			System.out.println("Starting sortAndAnimate");
+			//System.out.println("Starting sortAndAnimate");
 			if (t == null) {
 				t = new Thread (this);
 				t.start ();
@@ -191,21 +207,24 @@ public class BST extends JPanel {
 	    }
 	}
     
+    //one more lovely class that plays the frequency we kindly provide
     private static class PlaySound implements Runnable {
+    	
 		private Thread t;
 		private int frequency;
 
 		protected static final int SAMPLE_RATE = 16 * 1024;
-		private final static AudioFormat af = new AudioFormat(SAMPLE_RATE, 8, 1, true, true);
+		private static AudioFormat af = null;
 		private static SourceDataLine line;
 				
 		PlaySound(int freq) {
 			this.frequency = freq;
-			System.out.println("Creating PlaySound");
+			//System.out.println("   received frequency=" + frequency);
+			//System.out.println("Creating PlaySound");
 		}
 		
 		public void run() {
-			System.out.println("Running PlaySound");
+			//System.out.println("Running PlaySound");
 	        try {
 				line = AudioSystem.getSourceDataLine(af);
 			} catch (LineUnavailableException e) {
@@ -217,7 +236,7 @@ public class BST extends JPanel {
 				e.printStackTrace();
 			}
 	        line.start();
-	        byte [] toneBuffer = createSineWaveBuffer(map(frequency, 0, 1000, 200, 2000), sleepTime);
+	        byte [] toneBuffer = createSineWaveBuffer(frequency, sleepTime);
 	        line.write(toneBuffer, 0, toneBuffer.length);
             line.drain();
             line.close();
@@ -236,11 +255,12 @@ public class BST extends JPanel {
 	    }
 		
 		public void start () {
-			System.out.println("Starting PlaySound");
+			//System.out.println("Starting PlaySound");
 			if (t == null) {
 				t = new Thread (this);
 				t.start ();
 			}
+			af = new AudioFormat(SAMPLE_RATE, 8, 1, true, true);
 		}
 	}
     
