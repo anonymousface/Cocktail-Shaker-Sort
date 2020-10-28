@@ -4,6 +4,10 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.util.Random;
 
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.SourceDataLine;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -16,8 +20,9 @@ public class BST extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static JFrame frame = new JFrame();
 	private static SortAndAnimate a = new SortAndAnimate();
+	private static PlaySound sound;
 	private static int nums[];
-	private static int temp;
+	private static int temp, temp2 = -1;
 	
 	//parameters
 	private static int sleepTime = 50;
@@ -28,8 +33,11 @@ public class BST extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
     	for(int i = 0; i < nums.length; i++) {
-    		if((i==temp || i==temp+1) && a.getState()!=Thread.State.NEW && a.getState()!=Thread.State.TERMINATED) {
+    		if((i==temp || i==temp+1) && a.getState()!=Thread.State.NEW && a.getState()!=Thread.State.TERMINATED && temp!=-1) {
     	        g.setColor(Color.red);
+    		}
+    		else if(temp2 != -1 && i==temp2) {
+    			g.setColor(Color.red);
     		}
     		else {
     	        g.setColor(Color.black);
@@ -43,7 +51,6 @@ public class BST extends JPanel {
 		initNums();
 		
         frame.add(new BST());
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationByPlatform(true);
         frame.pack();
         frame.setVisible(true);
@@ -57,6 +64,7 @@ public class BST extends JPanel {
                 createAndShowGui(x, y, n);
             }
         });
+
     }
     
     public static void initNums() {
@@ -78,6 +86,11 @@ public class BST extends JPanel {
     public static void startSort() {
     	a = new SortAndAnimate();
     	a.start();
+    	
+    }
+    
+    public static void changeSpeed(int speed) {
+    	sleepTime = speed;
     }
     
     private static class SortAndAnimate implements Runnable {
@@ -85,6 +98,11 @@ public class BST extends JPanel {
 				
 		SortAndAnimate() {
 			System.out.println("Creating sortAndAnimate");
+		}
+		
+		private static void playFrequency(int f) {
+			sound = new PlaySound(f);
+			sound.start();
 		}
 		
 		public void run() {
@@ -102,6 +120,7 @@ public class BST extends JPanel {
 						}
     					refresh();
     					int tmp = nums[j];
+    					playFrequency(nums[j]);
     					nums[j] = nums[j + 1];
     					nums[j + 1] = tmp;
     					temp = j;
@@ -121,8 +140,10 @@ public class BST extends JPanel {
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
+    					playFrequency(nums[j]);
     					refresh();
     					int tmp = nums[j];
+    					sound = new PlaySound(nums[j]);
     					nums[j] = nums[j - 1];
     					nums[j - 1] = tmp;
     					temp = j;
@@ -137,7 +158,24 @@ public class BST extends JPanel {
     			}
     			if (!swapped) break;
     		}
+    		temp = -1;
+    		oneMorePass();
 		}
+		
+		private static void oneMorePass() {
+	    	for(int i = nums.length-1; i >= 0; i--) {
+	    		try {
+					Thread.sleep(sleepTime);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+	    		temp2 = i;
+				refresh();
+				playFrequency(nums[i]);
+	    	}
+	    	temp2 = -1;
+	    	refresh();
+	    }
 		
 		public void start () {
 			System.out.println("Starting sortAndAnimate");
@@ -152,4 +190,58 @@ public class BST extends JPanel {
 	        return Thread.State.NEW;
 	    }
 	}
+    
+    private static class PlaySound implements Runnable {
+		private Thread t;
+		private int frequency;
+
+		protected static final int SAMPLE_RATE = 16 * 1024;
+		private final static AudioFormat af = new AudioFormat(SAMPLE_RATE, 8, 1, true, true);
+		private static SourceDataLine line;
+				
+		PlaySound(int freq) {
+			this.frequency = freq;
+			System.out.println("Creating PlaySound");
+		}
+		
+		public void run() {
+			System.out.println("Running PlaySound");
+	        try {
+				line = AudioSystem.getSourceDataLine(af);
+			} catch (LineUnavailableException e) {
+				e.printStackTrace();
+			}
+	        try {
+				line.open(af, SAMPLE_RATE);
+			} catch (LineUnavailableException e) {
+				e.printStackTrace();
+			}
+	        line.start();
+	        byte [] toneBuffer = createSineWaveBuffer(map(frequency, 0, 1000, 200, 2000), sleepTime);
+	        line.write(toneBuffer, 0, toneBuffer.length);
+            line.drain();
+            line.close();
+		}
+	    
+	    public static byte[] createSineWaveBuffer(double freq, int ms) {
+	        int samples = (int)((ms * SAMPLE_RATE) / 1000);
+	        byte[] output = new byte[samples];
+	            //
+	        double period = (double)SAMPLE_RATE / freq;
+	        for (int i = 0; i < output.length; i++) {
+	            double angle = 2.0 * Math.PI * i / period;
+	            output[i] = (byte)(Math.sin(angle) * 127f);  }
+
+	        return output;
+	    }
+		
+		public void start () {
+			System.out.println("Starting PlaySound");
+			if (t == null) {
+				t = new Thread (this);
+				t.start ();
+			}
+		}
+	}
+    
 }

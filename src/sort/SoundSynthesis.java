@@ -34,7 +34,7 @@ public class SoundSynthesis {
 
        for(double freq = 400; freq <= 800;)  {
            byte [] toneBuffer = createSinWaveBuffer(freq, 50);
-           int count = line.write(toneBuffer, 0, toneBuffer.length);
+           line.write(toneBuffer, 0, toneBuffer.length);
 
            if(forwardNotBack)  {
                freq += 20;  

@@ -7,7 +7,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Font;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.JLabel;
+import javax.swing.JSlider;
 
 public class MainWindow {
 
@@ -40,6 +43,18 @@ public class MainWindow {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
+		JSlider slider = new JSlider();
+		slider.setBounds(5, 150, 125, 25);
+		slider.setMinimum(1);
+		slider.setValue(50);
+		slider.setMaximum(1000);
+		slider.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				BST.changeSpeed(slider.getValue());
+			}
+		});
+		frame.getContentPane().add(slider);
+		
 		JButton btnStartSort = new JButton("Start Sort");
 		btnStartSort.setFont(new Font("Tahoma", Font.PLAIN, 13));
 		btnStartSort.addActionListener(new ActionListener() {
@@ -65,6 +80,7 @@ public class MainWindow {
 		txtN.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				BST.main(null, frame.getBounds().width, frame.getBounds().y, Integer.parseInt(txtN.getText()));
+				BST.changeSpeed(slider.getValue());
 			}
 		});
 		txtN.setBounds(10, 126, 86, 20);
