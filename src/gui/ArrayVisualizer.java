@@ -20,7 +20,7 @@ public class ArrayVisualizer extends JPanel {
 	private static SortAndAnimate a = new SortAndAnimate();
 	private static PlaySound sound;
 	private static int nums[];
-	private static int temp, temp2 = -1;
+	private static int temp, temp2, temp3 = -1;
 	
 	//parameters
 	private static int sleepTime = 50;
@@ -33,10 +33,10 @@ public class ArrayVisualizer extends JPanel {
         //loop drawing all the elements of the array in a bar graph manner
     	for(int i = 0; i < nums.length; i++) {
     		//determines when to draw some of the bars in red
-    		if((i==temp || i==temp+1) && a.getState()!=Thread.State.NEW && a.getState()!=Thread.State.TERMINATED && temp!=-1) {
+    		if((i==temp || i==temp2) && a.getState()!=Thread.State.NEW && a.getState()!=Thread.State.TERMINATED && temp!=-1) {
     	        g.setColor(Color.red);
     		}
-    		else if(temp2 != -1 && i==temp2) {
+    		else if(temp3 != -1 && i==temp3) {
     			g.setColor(Color.red);
     		}
     		else {
@@ -118,54 +118,49 @@ public class ArrayVisualizer extends JPanel {
     			int j;
     			for (j = i; j < nums.length - i - 1; j++) {
     				if (nums[j] < nums[j + 1]) {
-    					try {
-							Thread.sleep(sleepTime);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-    					refresh();
+    					
+    					int tmp = nums[j];
+    					
+    					nums[j] = nums[j + 1];
+    					nums[j + 1] = tmp;
     					
     					sound = new PlaySound(map(nums[j], 0, 1000, 200, 4000));
     					//System.out.print("og val=" + nums[j] + "   mapped val="+map(nums[j], 0, 1000, 200, 4000));
     					sound.start();
-    					
-    					int tmp = nums[j];
-    					nums[j] = nums[j + 1];
-    					nums[j + 1] = tmp;
     					temp = j;
-    					swapped = true;
+    					temp2 = j + 1;
+    					refresh();
     					try {
 							Thread.sleep(sleepTime);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-    					refresh();
+    					swapped = true;
     				}
+    					
     			}
     			for (j = nums.length - 2 - i; j > i; j--) {
     				if (nums[j] > nums[j - 1]) {
-    					try {
-							Thread.sleep(sleepTime);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-    					refresh();			
+    							
     					int tmp = nums[j];
+    					
     					nums[j] = nums[j - 1];
     					nums[j - 1] = tmp;
+    					
+    					sound = new PlaySound(map(nums[j], 0, 1000, 200, 4000));
+    					//System.out.print("og val=" + nums[j+1] + "   mapped val="+map(nums[j+1], 0, 1000, 200, 4000));
+    					sound.start();
+
     					temp = j;
-    					swapped = true;
+    					temp2 = j - 1;
+    					refresh();
     					try {
 							Thread.sleep(sleepTime);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-    					refresh();
     					
-    					sound = new PlaySound(map(nums[j+1], 0, 1000, 200, 4000));
-    					//System.out.print("og val=" + nums[j+1] + "   mapped val="+map(nums[j+1], 0, 1000, 200, 4000));
-    					sound.start();
-    					
+    					swapped = true;
     				}
     			}
     			if (!swapped) break;
@@ -182,14 +177,14 @@ public class ArrayVisualizer extends JPanel {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-	    		temp2 = i;
+	    		temp3 = i;
 				refresh();
 				
 				sound = new PlaySound(map(nums[i], 0, 1000, 200, 4000));
 				//System.out.print("og val=" + nums[i] + "   mapped val="+map(nums[i], 0, 1000, 200, 4000));
 				sound.start();
 	    	}
-	    	temp2 = -1;
+	    	temp3 = -1;
 	    	refresh();
 	    }
 		
