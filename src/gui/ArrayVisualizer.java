@@ -23,9 +23,12 @@ public class ArrayVisualizer extends JPanel {
 	private static int temp, temp2, temp3 = -1;
 	
 	//parameters
+	private static int x, y, n;
 	private static int sleepTime = 50;
+	private static int max;
 	private static int pL = 10;
 	private static int pH = 300;
+	private static int mode = 0;
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -37,47 +40,103 @@ public class ArrayVisualizer extends JPanel {
     	        g.setColor(Color.red);
     		}
     		else if(temp3 != -1 && i==temp3) {
-    			g.setColor(Color.red);
+    			g.setColor(Color.green);
     		}
     		else {
     	        g.setColor(Color.black);
     		}
     		//draws the actual bars
-    		g.fillRect(10 + i*15, 10, 10, map(nums[i], 0, 1000, pL, pH));
+    		g.fillRect(10 + i*15, 10, 10, map(nums[i], 0, max, pL, pH));
     	}
     }
 
     //this code could be in the main but it is not 
-    private static void createAndShowGui(int x, int y, int n) {
-        nums = new int[n];
+    private static void createAndShowGui(int xVal, int yVal) {
+		x = xVal;
+		y = yVal;
+				
 		initNums();
-		
         frame.add(new ArrayVisualizer());
         frame.setLocationByPlatform(true);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.pack();
+        frame.setTitle("Visualizer");
+        frame.setBounds(x, y, 100, 300);
         frame.setVisible(true);
-        frame.setBounds(x, y, (nums.length*15 + 30), pH+60);
 
     }
 
-    public static void main(String[] args, int x, int y, int n) {
+    public static void main(String[] args, int x, int y) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                createAndShowGui(x, y, n);
+                createAndShowGui(x, y);
             }
         });
 
+    }
+
+    //creates and starts the sorting algorithm in a separate thread
+    public static void startSort() {
+    	a = new SortAndAnimate();
+    	a.start();
+    }
+    
+    //method to change the speed outside of this class #encapsulationBRUH
+    public static void changeSpeed(int speed) {
+    	sleepTime = speed;
+    	a.interrupt();
+    }
+    
+    //method to change the mode outside of this class #encapsulationBRUH
+    public static void changeMode(int modeVar) {
+    	mode = modeVar;
+    }
+    
+    //method to change the mode outside of this class #encapsulationBRUH
+    public static void changeN(int nVar) {
+    	n = nVar;
+    	initNums();
     }
     
     //randomizes the array
     public static void initNums() {
     	Random rnd = new Random();
-    	for(int i = 0; i < nums.length; i++) {
-    		nums[i] = rnd.nextInt(1000);
+
+        nums = new int[n];
+        frame.setBounds(x, y, (nums.length*15 + 30), pH+60);
+    	//System.out.println("mode is " + mode);
+    	switch(mode) {
+    	//random nums from 1 to 1000
+    	case 0:
+        	max = 1000;
+        	for(int i = 0; i < nums.length; i++) {
+        		nums[i] = rnd.nextInt(max);
+        	}
+        	refresh();
+    		break;
+
+    	//1 to n in ascending order
+    	case 1:
+        	max = nums.length;
+        	for(int i = 0; i < nums.length; i++) {
+        		nums[i] = i+1;
+        	}
+        	refresh();
+    		break;
+    	//randomly ordered from 1 to n
+    	case 2:
+    		max = nums.length;
+        	for(int i = 0; i < nums.length; i++) {
+        		int r = rnd.nextInt(nums.length-1);
+        		nums[r] = i+1;
+        		nums[i] = r+1;
+        	}
+        	refresh();
+    		break;
     	}
     	refresh();
     }
+    
     
     //converts a number from one numerical range to another
     private static int map(int value, int fromLow, int fromHigh, int toLow, int toHigh) {
@@ -88,19 +147,7 @@ public class ArrayVisualizer extends JPanel {
     private static void refresh() {
     	frame.repaint();
     }
-    
-    //creates and starts the sorting algorithm in a separate thread
-    public static void startSort() {
-    	a = new SortAndAnimate();
-    	a.start();
-    	
-    }
-    
-    //method to change the speed outside of this class #encapsulationBRUH
-    public static void changeSpeed(int speed) {
-    	sleepTime = speed;
-    }
-    
+   
     //this is the lovely sorting class
     private static class SortAndAnimate implements Runnable {
     	
@@ -120,11 +167,13 @@ public class ArrayVisualizer extends JPanel {
     				if (nums[j] < nums[j + 1]) {
     					
     					int tmp = nums[j];
-    					
     					nums[j] = nums[j + 1];
     					nums[j + 1] = tmp;
     					
-    					sound = new PlaySound(map(nums[j], 0, 1000, 200, 4000));
+    					
+    					
+    					
+    					sound = new PlaySound(map(nums[j], 0, max, 200, 4000));
     					//System.out.print("og val=" + nums[j] + "   mapped val="+map(nums[j], 0, 1000, 200, 4000));
     					sound.start();
     					temp = j;
@@ -135,6 +184,10 @@ public class ArrayVisualizer extends JPanel {
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
+    					
+    					
+    					
+    					
     					swapped = true;
     				}
     					
@@ -143,14 +196,15 @@ public class ArrayVisualizer extends JPanel {
     				if (nums[j] > nums[j - 1]) {
     							
     					int tmp = nums[j];
-    					
     					nums[j] = nums[j - 1];
     					nums[j - 1] = tmp;
     					
-    					sound = new PlaySound(map(nums[j], 0, 1000, 200, 4000));
+    					
+    					
+    					
+    					sound = new PlaySound(map(nums[j], 0, max, 200, 4000));
     					//System.out.print("og val=" + nums[j+1] + "   mapped val="+map(nums[j+1], 0, 1000, 200, 4000));
     					sound.start();
-
     					temp = j;
     					temp2 = j - 1;
     					refresh();
@@ -159,6 +213,10 @@ public class ArrayVisualizer extends JPanel {
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
+    					
+    					
+    					
+    					
     					
     					swapped = true;
     				}
@@ -180,13 +238,16 @@ public class ArrayVisualizer extends JPanel {
 	    		temp3 = i;
 				refresh();
 				
-				sound = new PlaySound(map(nums[i], 0, 1000, 200, 4000));
+				sound = new PlaySound(map(nums[i], 0, max, 200, 2500));
 				//System.out.print("og val=" + nums[i] + "   mapped val="+map(nums[i], 0, 1000, 200, 4000));
 				sound.start();
 	    	}
 	    	temp3 = -1;
 	    	refresh();
 	    }
+		
+		public void interrupt() {
+		}
 		
 		public void start () {
 			//System.out.println("Starting sortAndAnimate");
@@ -231,10 +292,28 @@ public class ArrayVisualizer extends JPanel {
 				e.printStackTrace();
 			}
 	        line.start();
-	        byte [] toneBuffer = createSineWaveBuffer(frequency, sleepTime);
-	        line.write(toneBuffer, 0, toneBuffer.length);
-            line.drain();
-            line.close();
+	        if(sleepTime >= 50) {
+		        byte [] toneBuffer = createSineWaveBuffer(frequency, 50);
+		        line.write(toneBuffer, 0, toneBuffer.length);
+	            line.drain();
+	            line.close();
+	            if(sleepTime-50 > 0) {
+		            try {
+						Thread.sleep(sleepTime-50);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					} catch (IllegalArgumentException e) {
+						e.printStackTrace();
+					}
+	            }
+	        }
+	        else {
+		        byte [] toneBuffer = createSineWaveBuffer(frequency, sleepTime);
+		        line.write(toneBuffer, 0, toneBuffer.length);
+	            line.drain();
+	            line.close();
+	        }
+           
 		}
 	    
 	    public static byte[] createSineWaveBuffer(double freq, int ms) {
